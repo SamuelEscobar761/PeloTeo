@@ -74,13 +74,22 @@ export const BookingPage = ({ actividad }: ActivityProps) => {
     };
 
     const generateStartTimeOptions = () => {
+        if (!selectedDate) return [];
         const dayBookings = actividad.bookings.filter(b => b.date === selectedDate);
-        return availableTimes.filter(time =>
-            !dayBookings.some(b =>
-                (convertTimeToMinutes(time) >= convertTimeToMinutes(b.time_init) &&
-                convertTimeToMinutes(time) < convertTimeToMinutes(b.time_end))
-            )
-        );
+        const hours: string[] = [];
+        let currentHour = actividad.time_init;
+        const endTimeInMinutes = convertTimeToMinutes(actividad.time_end);
+
+        while (convertTimeToMinutes(currentHour) < endTimeInMinutes) {
+            const nextHour = incrementHour(currentHour);
+            if (!dayBookings.some(b => (b.time_init <= currentHour && currentHour < b.time_end) ||
+                                        (b.time_init < nextHour && nextHour <= b.time_end))) {
+                hours.push(currentHour);
+            }
+            currentHour = nextHour;
+            if (currentHour === "24:00") break;  // Prevents exceeding 24:00
+        }
+        return hours;
     };
 
     const generateEndTimeOptions = (timeInit: string) => {
@@ -90,10 +99,10 @@ export const BookingPage = ({ actividad }: ActivityProps) => {
         const dayBookings = actividad.bookings.filter(b => b.date === selectedDate);
         const filteredTimes = availableTimes.filter(time =>
             convertTimeToMinutes(time) > timeInitMinutes &&
-            !dayBookings.some(b => convertTimeToMinutes(time) >= convertTimeToMinutes(b.time_init) &&
+            !dayBookings.some(b => convertTimeToMinutes(time) > convertTimeToMinutes(b.time_init) &&
                                    convertTimeToMinutes(time) <= convertTimeToMinutes(b.time_end))
-        );
-
+        ).sort();
+        console.log(filteredTimes);
         for(let i = 0; i < filteredTimes.length; i++){
             if(i < filteredTimes.length-1 && convertTimeToMinutes(filteredTimes[i]) + 60 < convertTimeToMinutes(filteredTimes[i+1])){
                 endTimeOptions.push(filteredTimes[i]);
@@ -106,32 +115,47 @@ export const BookingPage = ({ actividad }: ActivityProps) => {
     
 
     return (
-        <div>
-            <h1>Reserva para {actividad.name}</h1>
-            <form>
-                <label>
-                    Fecha:
-                    <input type="date" name="date" value={selectedDate} onChange={handleDateChange} required />
-                </label>
-                <label>
-                    Hora de inicio:
-                    <select name="time_init" value={timeInit} onChange={(e) => {handleTimeInitChange(e); setTimeEnd('');}} required>
-                        <option value="">Seleccionar hora de inicio</option>
-                        {startTimeOptions.map(time => (
-                            <option key={time} value={time}>{time}</option>
-                        ))}
-                    </select>
-                </label>
-                <label>
-                    Hora de fin:
-                    <select name="time_end" value={timeEnd} onChange={(e) => setTimeEnd(e.target.value)} required>
-                        <option value="">Seleccionar hora de fin</option>
-                        {endTimeOptions.map(time => (
-                            <option key={time} value={time}>{time}</option>
-                        ))}
-                    </select>
-                </label>
-                <button type="submit">Reservar</button>
+        <div className="max-w-lg mx-auto p-5 bg-white shadow-md rounded-lg mt-10">
+            <h1 className="text-xl font-bold text-center mb-6">Reserva para {actividad.name}</h1>
+            <form className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                        Fecha:
+                        <input type="date" name="date" value={selectedDate} onChange={handleDateChange} 
+                            className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            required />
+                    </label>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                        Hora de inicio:
+                        <select name="time_init" value={timeInit} 
+                                onChange={(e) => { handleTimeInitChange(e); setTimeEnd(''); }} 
+                                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                required>
+                            <option value="">Seleccionar hora de inicio</option>
+                            {startTimeOptions.map(time => (
+                                <option key={time} value={time}>{time}</option>
+                            ))}
+                        </select>
+                    </label>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                        Hora de fin:
+                        <select name="time_end" value={timeEnd} onChange={(e) => setTimeEnd(e.target.value)}
+                                className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                required>
+                            <option value="">Seleccionar hora de fin</option>
+                            {endTimeOptions.map(time => (
+                                <option key={time} value={time}>{time}</option>
+                            ))}
+                        </select>
+                    </label>
+                </div>
+                <button type="submit" className="w-full bg-indigo-600 text-white p-2 rounded-md hover:bg-indigo-700 transition-colors">
+                    Reservar
+                </button>
             </form>
         </div>
     );

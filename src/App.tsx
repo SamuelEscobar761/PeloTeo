@@ -21,7 +21,7 @@ const bookings = [
   {"date": "2024-04-17", "time_init": "9:00", "time_end": "10:00"},
   {"date": "2024-04-17", "time_init": "13:00", "time_end": "14:00"},
   {"date": "2024-04-18", "time_init": "14:00", "time_end": "16:00"},
-  {"date": "2024-04-18", "time_init": "10:00", "time_end": "11:00"},
+  {"date": "2024-04-18", "time_init": "10:00", "time_end": "14:00"},
   {"date": "2024-04-19", "time_init": "9:00", "time_end": "10:00"},
   {"date": "2024-04-20", "time_init": "11:00", "time_end": "12:00"},
   {"date": "2024-04-21", "time_init": "8:00", "time_end": "9:00"},
